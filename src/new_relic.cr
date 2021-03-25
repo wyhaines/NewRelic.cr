@@ -23,7 +23,7 @@ lib NewRelic
     distributed_tracing : DistributedTracingConfigT
     span_events : SpanEventConfigT
   end
-  alias AppConfigT = X_NewrelicAppConfigT
+  type AppConfigT = X_NewrelicAppConfigT
   struct X_NewrelicTransactionTracerConfigT
     enabled : Bool
     threshold : TransactionTracerThresholdT
@@ -31,15 +31,15 @@ lib NewRelic
     stack_trace_threshold_us : TimeUsT
     datastore_reporting : X_NewrelicTransactionTracerConfigTDatastoreReporting
   end
-  alias TransactionTracerConfigT = X_NewrelicTransactionTracerConfigT
+  type TransactionTracerConfigT = X_NewrelicTransactionTracerConfigT
   enum X_NewrelicTransactionTracerThresholdT
     NewrelicThresholdIsApdexFailing = 0
     NewrelicThresholdIsOverDuration = 1
   end
-  alias TransactionTracerThresholdT = X_NewrelicTransactionTracerThresholdT
-  alias X__Uint64T = LibC::ULong
-  alias Uint64T = X__Uint64T
-  alias TimeUsT = Uint64T
+  type TransactionTracerThresholdT = X_NewrelicTransactionTracerThresholdT
+  type X__Uint64T = LibC::ULong
+  type Uint64T = X__Uint64T
+  type TimeUsT = Uint64T
   struct X_NewrelicTransactionTracerConfigTDatastoreReporting
     enabled : Bool
     record_sql : TtRecordsqlT
@@ -55,21 +55,21 @@ lib NewRelic
     instance_reporting : Bool
     database_name_reporting : Bool
   end
-  alias DatastoreSegmentConfigT = X_NewrelicDatastoreSegmentConfigT
+  type DatastoreSegmentConfigT = X_NewrelicDatastoreSegmentConfigT
   struct X_NewrelicDistributedTracingConfigT
     enabled : Bool
   end
-  alias DistributedTracingConfigT = X_NewrelicDistributedTracingConfigT
+  type DistributedTracingConfigT = X_NewrelicDistributedTracingConfigT
   struct X_NewrelicSpanEventConfigT
     enabled : Bool
   end
-  alias SpanEventConfigT = X_NewrelicSpanEventConfigT
+  type SpanEventConfigT = X_NewrelicSpanEventConfigT
   fun destroy_app_config = newrelic_destroy_app_config(config : AppConfigT**) : Bool
   fun create_app = newrelic_create_app(config : AppConfigT*, timeout_ms : LibC::UShort) : AppT
-  alias AppT = Void*
+  type AppT = Void*
   fun destroy_app = newrelic_destroy_app(app : AppT*) : Bool
   fun start_web_transaction = newrelic_start_web_transaction(app : AppT, name : LibC::Char*) : TxnT
-  alias TxnT = Void*
+  type TxnT = Void*
   fun start_non_web_transaction = newrelic_start_non_web_transaction(app : AppT, name : LibC::Char*) : TxnT
   fun set_transaction_timing = newrelic_set_transaction_timing(transaction : TxnT, start_time : TimeUsT, duration : TimeUsT) : Bool
   fun end_transaction = newrelic_end_transaction(transaction_ptr : TxnT*) : Bool
@@ -79,7 +79,7 @@ lib NewRelic
   fun add_attribute_string = newrelic_add_attribute_string(transaction : TxnT, key : LibC::Char*, value : LibC::Char*) : Bool
   fun notice_error = newrelic_notice_error(transaction : TxnT, priority : LibC::Int, errmsg : LibC::Char*, errclass : LibC::Char*)
   fun start_segment = newrelic_start_segment(transaction : TxnT, name : LibC::Char*, category : LibC::Char*) : SegmentT
-  alias SegmentT = Void*
+  type SegmentT = Void*
   fun start_datastore_segment = newrelic_start_datastore_segment(transaction : TxnT, params : DatastoreSegmentParamsT*) : SegmentT
   struct X_NewrelicDatastoreSegmentParamsT
     product : LibC::Char*
@@ -90,20 +90,20 @@ lib NewRelic
     database_name : LibC::Char*
     query : LibC::Char*
   end
-  alias DatastoreSegmentParamsT = X_NewrelicDatastoreSegmentParamsT
+  type DatastoreSegmentParamsT = X_NewrelicDatastoreSegmentParamsT
   fun start_external_segment = newrelic_start_external_segment(transaction : TxnT, params : ExternalSegmentParamsT*) : SegmentT
   struct X_NewrelicExternalSegmentParamsT
     uri : LibC::Char*
     procedure : LibC::Char*
     library : LibC::Char*
   end
-  alias ExternalSegmentParamsT = X_NewrelicExternalSegmentParamsT
+  type ExternalSegmentParamsT = X_NewrelicExternalSegmentParamsT
   fun set_segment_parent = newrelic_set_segment_parent(segment : SegmentT, parent : SegmentT) : Bool
   fun set_segment_parent_root = newrelic_set_segment_parent_root(segment : SegmentT) : Bool
   fun set_segment_timing = newrelic_set_segment_timing(segment : SegmentT, start_time : TimeUsT, duration : TimeUsT) : Bool
   fun end_segment = newrelic_end_segment(transaction : TxnT, segment_ptr : SegmentT*) : Bool
   fun create_custom_event = newrelic_create_custom_event(event_type : LibC::Char*) : CustomEventT
-  alias CustomEventT = Void*
+  type CustomEventT = Void*
   fun discard_custom_event = newrelic_discard_custom_event(event : CustomEventT*)
   fun record_custom_event = newrelic_record_custom_event(transaction : TxnT, event : CustomEventT*)
   fun custom_event_add_attribute_int = newrelic_custom_event_add_attribute_int(event : CustomEventT, key : LibC::Char*, value : LibC::Int) : Bool
@@ -121,7 +121,11 @@ lib NewRelic
 
 end
 
-config = NewRelic.create_app_config("experiment",File.read("apikey"))
+license_key = File.read("apikey")
+
+config = NewRelic.create_app_config("experiment".to_slice,license_key.to_slice)
+
+puts config.inspect
 
 if (!NewRelic.configure_log("./c_sdk.log",
   NewRelic::LoglevelT::NewrelicLogInfo))
@@ -135,14 +139,14 @@ if (!NewRelic.init(nil, 0))
 end
 
 app = NewRelic.create_app(config, 10000)
-NewRelic.destroy_app_config(pointerof(config)) # &config
+NewRelic.destroy_app_config(pointerof(config))
 
 txn = NewRelic.start_web_transaction(app, "Sample")
 seg = NewRelic.start_segment(txn, "Segment1", "Test")
 
 sleep(2)
 
-NewRelic.end_segment(txn, pointerof(seg)) # &seg
-NewRelic.end_transaction(pointerof(txn)) # &txn
+NewRelic.end_segment(txn, pointerof(seg))
+NewRelic.end_transaction(pointerof(txn))
 
-NewRelic.destroy_app(pointerof(app)) # &app
+NewRelic.destroy_app(pointerof(app))
