@@ -1,4 +1,4 @@
-struct NewRelic
+class NewRelic
   struct Config
     MalformedConfig = Exception
 
@@ -15,6 +15,10 @@ struct NewRelic
 
     def structure
       @config
+    end
+
+    def pointer
+      pointerof(@config)
     end
 
     # app_name : LibC::Char[255]
