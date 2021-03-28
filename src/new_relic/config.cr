@@ -7,6 +7,9 @@ class NewRelic
     def initialize(file : String = File.join(Dir.current, "newrelic.yml"))
     end
     
+    private def find_config_file
+    end
+    
     def initialize(name : String, key : String)
       name = name.strip
       key = key.strip
