@@ -16,14 +16,13 @@ class NewRelic
         cfg = Hash(String, NewRelic::Config::Environment).from_yaml(::File.read(configuration_file)) if !configuration_file.nil?
       rescue
       end
-
+      
       @env_cfg = NewRelic::Config::Environment.from_yaml("---\n")
       @env_cfg = cfg[environment] if !cfg.nil? && cfg.has_key?(environment)
 
       @env_cfg.app_name = app_name.strip if !app_name.nil?
       @env_cfg.license_key = license_key.strip if !license_key.nil?
 
-      puts @env_cfg.inspect
       config = NewRelicExt.create_app_config(@env_cfg.app_name, @env_cfg.license_key)
 
       raise MalformedConfig.new("The config could not be initialized. Double check your app name and your license key.") if config == Pointer(NewRelicExt::AppConfigT).null
