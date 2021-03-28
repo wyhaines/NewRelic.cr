@@ -45,8 +45,8 @@ class NewRelic
     configure_logging
     do_init
     app = NewRelicExt.create_app(@config.structure, @wait)
-    NewRelicExt.destroy_app_config(@config.pointer)
-
+    @config.destroy!
+    
     app
   end
 

@@ -4,6 +4,9 @@ class NewRelic
 
     @config : Pointer(NewRelicExt::AppConfigT)
 
+    def initialize(file : String = File.join(Dir.current, "newrelic.yml"))
+    end
+    
     def initialize(name : String, key : String)
       name = name.strip
       key = key.strip
@@ -21,12 +24,14 @@ class NewRelic
       pointerof(@config)
     end
 
-    # app_name : LibC::Char[255]
+    def destroy!
+      NewRelicExt.destroy_app_config(pointer)
+    end
+
     def app_name
       @config.app_name
     end
 
-    # license_key : LibC::Char[255]
     def license_key
       @config.license_key
     end
