@@ -2,7 +2,7 @@ require "./src/new_relic"
 
 license_key = File.read("apikey").chomp
 
-NewRelic.new(name: "experiment", key: license_key, type: :xweb) do |app|
+NewRelic.new(app_name: "experiment", license_key: license_key, type: :xweb) do |app|
   app.transaction("sample") do |txn|
     txn.segment("Segment1") do |seg|
       puts "sleeping 1"

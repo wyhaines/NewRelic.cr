@@ -2,23 +2,26 @@ require "./new_relic/*"
 
 class NewRelic
   @config : NewRelic::Config
-  @loglevel : NewRelicExt::LoglevelT
   @app : NewRelicExt::AppT
 
   getter app : NewRelicExt::AppT
 
   def initialize(
-    name : String,
-    key : String,
-    @log : String = "./newrelic_crystal.log",
+    configuration_file : String? = nil,
+    app_name : String? = nil,
+    license_key : String? = nil,
+    logfile : String? = nil,
     loglevel : String = "info",
     @wait : Int32 = 10000,
     @type : Symbol = :web,
     config : NewRelic::Config? = nil,
     &blk : NewRelic ->
   )
-    @loglevel = loglevels_from_words(loglevel)
-    @config = config || Config.new(name, key)
+    @config = config || Config.new(
+      configuration_file: configuration_file,
+      app_name: app_name,
+      license_key: license_key
+    )
     @app = do_app_setup
 
     blk.call(self)
@@ -27,16 +30,20 @@ class NewRelic
   end
 
   def initialize(
-    name : String,
-    key : String,
-    @log : String = "./newrelic_crystal.log",
+    configuration_file : String? = nil,
+    app_name : String? = nil,
+    license_key : String? = nil,
+    logfile : String? = nil,
     loglevel : String = "info",
     @wait : Int32 = 10000,
     @type : Symbol = :web,
     config : NewRelic::Config? = nil
   )
-    @loglevel = loglevels_from_words(loglevel)
-    @config = config || Config.new(name, key)
+    @config = config || Config.new(
+      configuration_file: configuration_file,
+      app_name: app_name,
+      license_key: license_key
+    )
 
     @app = do_app_setup
   end
@@ -46,7 +53,7 @@ class NewRelic
     do_init
     app = NewRelicExt.create_app(@config.structure, @wait)
     @config.destroy!
-    
+
     app
   end
 
@@ -66,8 +73,8 @@ class NewRelic
   end
 
   private def configure_logging
-    if (!NewRelicExt.configure_log(@log, @loglevel))
-      raise LogCreationError.new("There was an error when trying to create a log at #{@log}.")
+    if (!NewRelicExt.configure_log(@config.log_file, loglevels_from_words(@config.log_level)))
+      raise LogCreationError.new("There was an error when trying to create a log at #{@config.log_file}.")
     end
   end
 
