@@ -5,6 +5,7 @@ class NewRelic
   @app : NewRelicExt::AppT
 
   getter app : NewRelicExt::AppT
+  getter config : Config
 
   def initialize(
     configuration_file : String? = nil,
@@ -50,7 +51,7 @@ class NewRelic
 
   private def do_app_setup
     configure_logging
-    do_init
+    # do_init
     app = NewRelicExt.create_app(@config.structure, @wait)
     @config.destroy!
 
@@ -78,18 +79,31 @@ class NewRelic
     end
   end
 
+  # This only needs to be called if the daemon socket must be initialized with non-standard parameters.
+  # And right now we do not support that.
   private def do_init
     if (!NewRelicExt.init(nil, 0))
       raise NewRelicInitializationError.new("There was an error when initializing the New Relic Agent.")
     end
   end
 
-  def transaction(label, &blk : Transaction ->)
-    transaction = Transaction.create(self, label, @type)
-    puts transaction.inspect
+  def transaction(label, blk : Transaction ->, type : Symbol = @type )
+    transaction = Transaction.create(self, label, type)
     blk.call(transaction)
   ensure
     transaction.destroy! if transaction
+  end
+
+  def transaction(label, type : Symbol = @type, &blk : Transaction -> )
+    transaction(label: label, type: type, blk: blk)
+  end
+
+  def web_transaction(label, &blk : Transaction -> )
+    transaction(label: label, type: :web, blk: blk)
+  end
+
+  def non_web_transaction(label, &blk : Transaction ->)
+    transaction(label: label, type: :nonweb, blk: blk)
   end
 
   def destroy!

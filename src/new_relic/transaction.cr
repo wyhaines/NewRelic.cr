@@ -6,6 +6,9 @@ class NewRelic::Transaction
   @app : NewRelic
   @type : Symbol
 
+  getter app : NewRelic
+  getter type : Symbol
+  
   # Instead of directly creating a Transaction object with a
   # specified type (:web or :nonweb), one can call #create with
   # an appropriate type parameter and one will get back the subclass
@@ -55,9 +58,10 @@ class NewRelic::Transaction
     label : String = "Segment",
     category : String = "Segment",
     &blk : Segment ->
-  )
+  ) : Bool
     segment = Segment.new(self, label, category)
     blk.call(segment)
+    true
   ensure
     segment.destroy! if segment
   end

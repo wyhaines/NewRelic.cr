@@ -8,6 +8,8 @@ class NewRelic
     @env_cfg : NewRelic::Config::Environment
     @environment : String = "development"
 
+    getter config : Pointer(NewRelicExt::AppConfigT)
+
     def initialize(configuration_file : String? = nil, app_name : String? = nil, license_key : String? = nil)
       @environment = Config.environment
       @env_cfg = Config.environment_configuration(configuration_file)
@@ -17,7 +19,6 @@ class NewRelic
       config = NewRelicExt.create_app_config(@env_cfg.app_name, @env_cfg.license_key)
 
       raise MalformedConfig.new("The config could not be initialized. Double check your app name and your license key.") if config == Pointer(NewRelicExt::AppConfigT).null
-      puts "setting config to #{config.inspect}"
       @config = config
     end
 

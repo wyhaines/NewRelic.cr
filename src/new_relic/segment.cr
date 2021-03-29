@@ -3,7 +3,8 @@
 class NewRelic::Segment
   @transaction : Transaction
   getter segment : NewRelicExt::SegmentT
-
+  getter transaction : Transaction
+  
   def initialize(
     @transaction,
     @label : String = "segment",
