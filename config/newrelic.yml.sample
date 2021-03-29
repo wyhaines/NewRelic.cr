@@ -1,0 +1,9 @@
+common: &default_settings
+  license_key: '231d042757af255395d03ca6add7e5c0560bNRAL'
+  app_name: 'experiment'
+production:
+  <<: *default_settings
+  log_level: info
+development: 
+  <<: *default_settings
+  log_level: debug

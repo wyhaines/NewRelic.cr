@@ -22,6 +22,7 @@ class NewRelic
       app_name: app_name,
       license_key: license_key
     )
+
     @app = do_app_setup
 
     blk.call(self)
@@ -44,7 +45,6 @@ class NewRelic
       app_name: app_name,
       license_key: license_key
     )
-
     @app = do_app_setup
   end
 
