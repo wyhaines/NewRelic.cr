@@ -1,5 +1,5 @@
 common: &default_settings
-  license_key: '231d042757af255395d03ca6add7e5c0560bNRAL'
+  license_key: '231d042757af255395d03ca6add7e5c0560bNRAL' # Fake Key, for illustration only.
   app_name: 'experiment'
 production:
   <<: *default_settings
