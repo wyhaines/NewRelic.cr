@@ -87,18 +87,18 @@ class NewRelic
     end
   end
 
-  def transaction(label, blk : Transaction ->, type : Symbol = @type )
+  def transaction(label, blk : Transaction ->, type : Symbol = @type)
     transaction = Transaction.create(self, label, type)
     blk.call(transaction)
   ensure
     transaction.destroy! if transaction
   end
 
-  def transaction(label, type : Symbol = @type, &blk : Transaction -> )
+  def transaction(label, type : Symbol = @type, &blk : Transaction ->)
     transaction(label: label, type: type, blk: blk)
   end
 
-  def web_transaction(label, &blk : Transaction -> )
+  def web_transaction(label, &blk : Transaction ->)
     transaction(label: label, type: :web, blk: blk)
   end
 
@@ -108,5 +108,9 @@ class NewRelic
 
   def destroy!
     NewRelicExt.destroy_app(pointerof(@app))
+  end
+
+  def version
+    NewRelicExt.version
   end
 end

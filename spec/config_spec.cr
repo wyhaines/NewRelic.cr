@@ -5,7 +5,7 @@ describe NewRelic::Config do
     tmp_env = ENV
     ENV.clear
     NewRelic::Config.environment.should eq "development"
-    tmp_env.each {|k,v| ENV[k] = v}
+    tmp_env.each { |k, v| ENV[k] = v }
   end
 
   it "can determine environment from a variety of framework env variables" do

@@ -8,7 +8,7 @@ class NewRelic::Transaction
 
   getter app : NewRelic
   getter type : Symbol
-  
+
   # Instead of directly creating a Transaction object with a
   # specified type (:web or :nonweb), one can call #create with
   # an appropriate type parameter and one will get back the subclass
@@ -42,6 +42,24 @@ class NewRelic::Transaction
     pointerof(@transaction)
   end
 
+  def custom_event(event_type : String, **params)
+    event = NewRelicExt.create_custom_event(event_type)
+    params.each do |k,v|
+      case v.class
+      when Int8, Int16, UInt8
+        NewRelicExt.custom_event_add_attribute_int(event, k.to_s, v.as(Int32))
+      when Int32, Int64, UInt32
+        NewRelicExt.custom_event_add_attribute_long(event, k.to_s, v.as(Int64))
+      when Float
+        NewRelicExt.custom_event_add_attribute_double(event, k.to_s, v.as(Float64))
+      else
+        NewRelicExt.custom_event_add_attribute_string(event, k.to_s, v.to_s)
+      end
+    end
+    NewRelicExt.record_custom_event(@transaction, pointerof(event))
+    NewRelicExt.discard_custom_event(pointerof(event))
+  end
+
   # Get rid of the data structures associated with this transaction.
   # This class must be called before letting this object be garbage
   # collected in order to avoid a memory leak. The easiest way to do
@@ -49,7 +67,25 @@ class NewRelic::Transaction
   # ensure that this method is called and that these resources are
   # destroyed.
   def destroy!
-    NewRelicExt.end_transaction(pointerof(@transaction))
+    NewRelicExt.end_transaction(pointer)
+  end
+
+  # This transaction will be ignored, and the data that it contains
+  # will not be sent to New Relic.
+  def ignore!
+    NewRelicExt.ignore_transaction(@transaction)
+  end
+
+  def error(
+    msg : String = "Error at #{caller[1]}",
+    category : String = "error",
+    priority : Int16 = 0
+  )
+    NewRelicExt.notice_error(@transaction, priority, msg, category)
+  end
+
+  def name=(val : String)
+    NewRelicExt.set_transaction_name(@transaction, val)
   end
 
   # Within a transaction, one can create one or more Segments
@@ -58,12 +94,28 @@ class NewRelic::Transaction
     label : String = "Segment",
     category : String = "Segment",
     &blk : Segment ->
-  ) : Bool
+  )
     segment = Segment.new(self, label, category)
     blk.call(segment)
-    true
   ensure
     segment.destroy! if segment
+  end
+
+  def timing(start_time, duration)
+    NewRelicExt.set_transaction_timing(@segment, start_time, duration)
+  end
+
+  def []=(k : String, v : Int)
+    case v.class
+    when Int8, Int16, UInt8
+      NewRelicExt.add_attribute_int(structure, k, v.as(Int32))
+    when Int32, Int64, UInt32
+      NewRelicExt.add_attribute_long(structure, k, v.as(Int64))
+    when Float
+      NewRelic.add_attribute_double(structure, k, v.as(Float64))
+    else
+      NewRelic.add_attribute_string(structure, k, v.to_s)
+    end
   end
 end
 

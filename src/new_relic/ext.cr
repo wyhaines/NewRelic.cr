@@ -76,7 +76,7 @@ lib NewRelicExt
 
   type SpanEventConfigT = X_NewrelicSpanEventConfigT
 
-  struct X_NewrelicDatastoreSegmentParamsT
+  struct DatastoreSegmentParamsT
     product : LibC::Char*
     collection : LibC::Char*
     operation : LibC::Char*
@@ -86,15 +86,11 @@ lib NewRelicExt
     query : LibC::Char*
   end
 
-  type DatastoreSegmentParamsT = X_NewrelicDatastoreSegmentParamsT
-
-  struct X_NewrelicExternalSegmentParamsT
+  struct ExternalSegmentParamsT
     uri : LibC::Char*
     procedure : LibC::Char*
     library : LibC::Char*
   end
-
-  type ExternalSegmentParamsT = X_NewrelicExternalSegmentParamsT
 
   type TtRecordsqlT = X_NewrelicTtRecordsqlT
   type X__Uint64T = LibC::ULong

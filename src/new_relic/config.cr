@@ -29,10 +29,10 @@ class NewRelic
     def self.environment_configuration(configuration_file : String? = nil)
       if configuration_file.nil? || !::File.exists?(configuration_file)
         configuration_file = if configuration_file.nil?
-          find_config_file
-        else
-          find_config_file(configuration_file)
-        end
+                               find_config_file
+                             else
+                               find_config_file(configuration_file)
+                             end
       end
 
       cfg = nil
