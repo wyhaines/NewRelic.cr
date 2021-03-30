@@ -14,7 +14,7 @@ class NewRelic
         @structure.procedure = procedure
         @structure.library = library ? library.gsub('/', '_') : library
       end
-      
+
       def pointer
         pointerof(@structure)
       end

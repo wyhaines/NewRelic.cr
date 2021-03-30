@@ -97,8 +97,7 @@ require "./spec_helper"
     it "can start a datastore transaction" do
       NewRelic.new do |app|
         app.web_transaction("spec-datastore-web-transaction") do |txn|
-          txn.segment("segment-1") do |seg|
-            seg.start_datastore(product: "filesystem")
+          txn.segment(product: "filesystem") do |seg|
             sleep rand
           end
         end
@@ -108,8 +107,7 @@ require "./spec_helper"
     it "can start an external transaction" do
       NewRelic.new do |app|
         app.web_transaction("spec-external-web-transaction") do |txn|
-          txn.segment("segment-1") do |seg|
-            seg.start_external(uri: "http://localhost")
+          txn.segment(uri: "http://localhost") do |seg|
             sleep rand
           end
         end
@@ -125,7 +123,6 @@ require "./spec_helper"
           end
           txn.custom_event("after sleep", timestamp: Time.local)
           puts "after sleep"
-
         end
       end
     end

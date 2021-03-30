@@ -4,15 +4,70 @@ require "./segment/*"
 # and all of the data management around it.
 class NewRelic::Segment
   @transaction : Transaction
+  @type : Symbol
+  @params : NamedTuple(label: String, category: String) |
+            NamedTuple(
+    product: String,
+    collection: String?,
+    operation: String?,
+    host: String?,
+    port_path_or_id: String?,
+    database_name: String?,
+    query: String?) |
+            NamedTuple(uri: String, procedure: String?, library: String?)
   getter segment : NewRelicExt::SegmentT
   getter transaction : Transaction
 
   def initialize(
-    @transaction,
-    @label : String = "segment",
-    @category : String = "segment"
+    @transaction : Transaction,
+    label : String,
+    category : String
   )
-    @segment = NewRelicExt.start_segment(@transaction.structure, @label, @category)
+    @type = :standard
+    @params = {label: label, category: category}
+    @segment = NewRelicExt.start_segment(@transaction.structure, label, category)
+  end
+
+  def initialize(
+    @transaction : Transaction,
+    product : String,
+    collection : String?,
+    operation : String?,
+    host : String?,
+    port_path_or_id : String?,
+    database_name : String?,
+    query : String?
+  )
+    @type = :datastore
+    params = {
+      product:         product,
+      collection:      collection,
+      operation:       operation,
+      host:            host,
+      port_path_or_id: port_path_or_id,
+      database_name:   database_name,
+      query:           query,
+    }
+    args = Segment::DatastoreParams.new(**params)
+    @params = params
+    @segment = NewRelicExt.start_datastore_segment(@transaction.structure, args.pointer)
+  end
+
+  def initialize(
+    @transaction : Transaction,
+    uri : String,
+    procedure : String?,
+    library : String?
+  )
+    @type = :external
+    params = {
+      uri:       uri,
+      procedure: procedure,
+      library:   library,
+    }
+    args = Segment::ExternalParams.new(**params)
+    @params = params
+    @segment = NewRelicExt.start_external_segment(@transaction.structure, args.pointer)
   end
 
   # Return the C structure that corresponds to the Segment.
@@ -40,50 +95,6 @@ class NewRelic::Segment
 
   def parent_root!
     NewRelicExt.set_segment_parent_root(@segment)
-  end
-
-  def start_datastore(params : DatastoreParams)
-    NewRelicExt.start_datastore_segment(@transaction.structure, params.pointer)
-  end
-
-  def start_datastore(
-    product : String,
-    collection : String? = nil,
-    operation : String? = nil,
-    host : String? = nil,
-    port_path_or_id : String? = nil,
-    database_name : String? = nil,
-    query : String? = nil
-  )
-    start_datastore(
-      DatastoreParams.new(
-        product: product,
-        collection: collection,
-        operation: operation,
-        host: host,
-        port_path_or_id: port_path_or_id,
-        database_name: database_name,
-        query: query
-      )
-    )
-  end
-
-  def start_external(params : ExternalParams)
-    NewRelicExt.start_external_segment(@transaction.structure, params.pointer)
-  end
-
-  def start_external(
-    uri : String,
-    procedure : String? = nil,
-    library : String? = nil
-  )
-    start_external(
-      ExternalParams.new(
-        uri: uri,
-        procedure: procedure,
-        library: library
-      )
-    )
   end
 
   def timing(start_time, duration)

@@ -14,7 +14,7 @@ class NewRelic
         query : String? = nil
       )
         @structure = NewRelicExt::DatastoreSegmentParamsT.new
-       
+
         @structure.product = product
         @structure.collection = collection
         @structure.operation = operation

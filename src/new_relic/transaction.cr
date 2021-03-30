@@ -44,7 +44,7 @@ class NewRelic::Transaction
 
   def custom_event(event_type : String, **params)
     event = NewRelicExt.create_custom_event(event_type)
-    params.each do |k,v|
+    params.each do |k, v|
       case v.class
       when Int8, Int16, UInt8
         NewRelicExt.custom_event_add_attribute_int(event, k.to_s, v.as(Int32))
@@ -90,16 +90,126 @@ class NewRelic::Transaction
 
   # Within a transaction, one can create one or more Segments
   # which represent subsections within the transaction.
-  def segment(
-    label : String = "Segment",
-    category : String = "Segment",
-    &blk : Segment ->
-  )
-    segment = Segment.new(self, label, category)
+
+  def segment(params : NewRelic::Segment::DatastoreParams | NewRelic::Segment::ExternalParams, &blk : Segment ->)
+    segment = Segment.new(self, params)
     blk.call(segment)
   ensure
     segment.destroy! if segment
   end
+
+  def segment(label : String = "segment", category : String = "segment", &blk : Segment ->)
+    segment = Segment.new(
+      transaction: self,
+      label: label,
+      category: label
+    )
+
+    blk.call(segment)
+  ensure
+    segment.destroy! if segment
+  end
+
+  def segment(
+    uri : String,
+    procedure : String? = nil,
+    library : String? = nil,
+    &blk : Segment ->
+  )
+    segment = Segment.new(
+      transaction: self,
+      uri: uri,
+      procedure: procedure,
+      library: library
+    )
+
+    blk.call(segment)
+  ensure
+    segment.destroy! if segment
+  end
+  
+  def segment(
+    product : String,
+    collection : String? = nil,
+    operation : String? = nil,
+    host : String? = nil,
+    port_path_or_id : String? = nil,
+    database_name : String? = nil,
+    query : String? = nil,
+    &blk : Segment ->
+  )
+    segment = Segment.new(
+      transaction: self,
+      product: product,
+      collection: collection,
+      operation: operation,
+      host: host,
+      port_path_or_id: port_path_or_id,
+      database_name: database_name,
+      query: query
+    )
+
+    blk.call(segment)
+  ensure
+    segment.destroy! if segment
+  end
+
+
+  # def segment(
+  #   label : String = "Segment",
+  #   category : String = "Segment",
+  #   &blk : Segment ->
+  # )
+  #   segment = Segment.new(
+  #     transaction: self,
+  #     label: label,
+  #     category: category)
+  #   blk.call(segment)
+  # ensure
+  #   segment.destroy! if segment
+  # end
+
+  # def segment(
+  #   product : String,
+  #   collection : String? = nil,
+  #   operation : String? = nil,
+  #   host : String? = nil,
+  #   port_path_or_id : String? = nil,
+  #   database_name : String? = nil,
+  #   query : String? = nil,
+  #   &blk : Segment ->
+  # )
+  #   segment = Segment.new(
+  #     transaction: self,
+  #     product: product,
+  #     collection: collection,
+  #     operation: operation,
+  #     host: host,
+  #     port_path_or_id: port_path_or_id,
+  #     database_name: database_name,
+  #     query: query
+  #   )
+  #   blk.call(segment)
+  # ensure
+  #   segment.destroy! if segment
+  # end
+
+  # def segment(
+  #   uri : String,
+  #   procedure : String? = nil,
+  #   library : String? = nil,
+  #   &blk : Segment ->
+  # )
+  #   segment = Segment.new(
+  #     transaction: self,
+  #     uri: uri,
+  #     procedure: procedure,
+  #     library: library
+  #   )
+  #   blk.call(segment)
+  # ensure
+  #   segment.destroy! if segment
+  # end
 
   def timing(start_time, duration)
     NewRelicExt.set_transaction_timing(@segment, start_time, duration)
