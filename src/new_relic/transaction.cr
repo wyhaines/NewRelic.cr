@@ -111,43 +111,28 @@ class NewRelic::Transaction
   end
 
   def segment(
-    uri : String,
-    procedure : String? = nil,
-    library : String? = nil,
+    **params,
     &blk : Segment ->
   )
-    segment = Segment.new(
-      transaction: self,
-      uri: uri,
-      procedure: procedure,
-      library: library
-    )
-
-    blk.call(segment)
-  ensure
-    segment.destroy! if segment
-  end
-  
-  def segment(
-    product : String,
-    collection : String? = nil,
-    operation : String? = nil,
-    host : String? = nil,
-    port_path_or_id : String? = nil,
-    database_name : String? = nil,
-    query : String? = nil,
-    &blk : Segment ->
-  )
-    segment = Segment.new(
-      transaction: self,
-      product: product,
-      collection: collection,
-      operation: operation,
-      host: host,
-      port_path_or_id: port_path_or_id,
-      database_name: database_name,
-      query: query
-    )
+    if params["uri"]?
+      segment = Segment.new(
+        transaction: self,
+        uri: params["uri"]?,
+        procedure: params["procedure"]?,
+        library: params["library"]?
+      )
+    else
+      segment = Segment.new(
+        transaction: self,
+        product: params["product"]?,
+        collection: params["collection"]?,
+        operation: params["operation"]?,
+        host: params["host"]?,
+        port_path_or_id: params["port_path_or_id"]?,
+        database_name: params["database_name"]?,
+        query: params["query"]?,
+      )
+    end
 
     blk.call(segment)
   ensure
